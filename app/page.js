@@ -1,487 +1,241 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
+import { useEffect, useState } from "react";
 
-/* ============================================
-   WHATSAPP HELPER
-   ============================================ */
-const WA_NUMBER = "6281996522114";
-const waLink = (text) =>
-  `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
-const defaultWaText = "Halo Ovara, saya ingin pesan telur segar";
+const WA_NUMBER = "6281234567890";
+const WA_URL = `https://wa.me/${WA_NUMBER}`;
 
-/* ============================================
-   DATA
-   ============================================ */
-const stats = [
-  { value: "500+", label: "Pelanggan Setia" },
-  { value: "100%", label: "Timbangan Jujur" },
-  { value: "3 Jenis", label: "Telur Tersedia" },
-  { value: "Setiap Hari", label: "Dipanen Segar" },
-];
+export default function Home() {
+  const [scrolled, setScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState("");
 
-const products = [
-  {
-    name: "Telur Ayam Negeri",
-    image:
-      "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=400&h=300&fit=crop&auto=format&q=80",
-    badge: "Paling Laris 🔥",
-    badgeColor: "bg-amber-500 text-white",
-    desc: "Telur segar berprotein tinggi dari ayam negeri pilihan. Kuning telur besar dan padat, cocok untuk masakan sehari-hari.",
-    features: [
-      "Kuning telur besar & padat",
-      "Kulit bersih & mulus",
-      "Cocok untuk semua masakan",
-    ],
-    price: "Rp 28.000/kg",
-    waText: "Halo Ovara, saya ingin pesan Telur Ayam Negeri",
-  },
-  {
-    name: "Telur Ayam Kampung",
-    image:
-      "https://images.unsplash.com/photo-1598965675045-45c5e72c7d05?w=400&h=300&fit=crop&auto=format&q=80",
-    badge: "Organik 🌿",
-    badgeColor: "bg-green-600 text-white",
-    desc: "Telur organik dari ayam kampung yang dibesarkan secara alami. Rasa lebih gurih dan bergizi tinggi.",
-    features: [
-      "Rasa lebih gurih & lezat",
-      "Bergizi lebih tinggi",
-      "Ayam dibesarkan alami",
-    ],
-    price: "Rp 45.000/kg",
-    waText: "Halo Ovara, saya ingin pesan Telur Ayam Kampung",
-  },
-  {
-    name: "Telur Bebek",
-    image:
-      "https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?w=400&h=300&fit=crop&auto=format&q=80",
-    badge: "Premium 👑",
-    badgeColor: "bg-violet-600 text-white",
-    desc: "Telur bebek segar dengan ukuran besar dan kuning telur yang lebih kaya. Sempurna untuk asin atau masakan spesial.",
-    features: [
-      "Ukuran lebih besar",
-      "Kuning telur lebih kaya",
-      "Cocok untuk telur asin",
-    ],
-    price: "Rp 50.000/kg",
-    waText: "Halo Ovara, saya ingin pesan Telur Bebek",
-  },
-];
+  const [qty, setQty] = useState({
+    "Telur Ayam Ras": 1,
+    "Telur Ayam Kampung": 1,
+    "Telur Omega-3": 1
+  });
 
-const advantages = [
-  {
-    icon: "🌿",
-    title: "Segar Dipanen Hari Ini",
-    desc: "Setiap telur yang kami jual dipanen langsung hari ini dari kandang kami. Kesegaran terjamin 100%.",
-  },
-  {
-    icon: "⚖️",
-    title: "Timbangan Selalu Jujur",
-    desc: "Kami berkomitmen pada kejujuran. Setiap pesanan ditimbang dengan akurat sesuai yang Anda bayar.",
-  },
-  {
-    icon: "🚚",
-    title: "Siap Antar ke Rumah Anda",
-    desc: "Layanan antar tersedia ke seluruh wilayah Cibadak dan sekitar Sukabumi. Cepat dan aman.",
-  },
-  {
-    icon: "💪",
-    title: "Kualitas Premium Terjamin",
-    desc: "Telur kami berasal dari ayam dan bebek yang diberi pakan berkualitas untuk menghasilkan telur terbaik.",
-  },
-];
+  const updateQty = (name, delta) => {
+    setQty(prev => ({
+      ...prev,
+      [name]: Math.max(1, prev[name] + delta)
+    }));
+  };
 
-const testimonials = [
-  {
-    text: "Telurnya segar banget! Kuning telurnya besar dan padat. Udah langganan setiap minggu, timbangan juga selalu pas.",
-    name: "Ibu Sari",
-    location: "Cibadak",
-  },
-  {
-    text: "Telur kampungnya enak banget, rasanya beda dari yang dijual di pasar. Pengiriman juga cepat dan aman sampai ke rumah.",
-    name: "Pak Budi",
-    location: "Sukabumi",
-  },
-  {
-    text: "Sering beli telur bebek untuk bikin telur asin. Ukurannya besar-besar dan segar. Recommended banget!",
-    name: "Ibu Dewi",
-    location: "Cicurug",
-  },
-];
+  const getWaLink = (productName, quantity) => {
+    const text = `Halo Ovara, saya mau pesan ${productName} sebanyak ${quantity} Kg.`;
+    return `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
+  };
 
-const steps = [
-  {
-    num: "1",
-    title: "Pilih Produk",
-    desc: "Pilih jenis telur dan jumlah yang Anda butuhkan dari daftar produk kami",
-  },
-  {
-    num: "2",
-    title: "Hubungi via WhatsApp",
-    desc: "Klik tombol pesan dan chat langsung dengan tim Ovara kami",
-  },
-  {
-    num: "3",
-    title: "Terima di Rumah",
-    desc: "Konfirmasi pesanan dan telur segar langsung diantar ke rumah Anda",
-  },
-];
-
-/* ============================================
-   INTERSECTION OBSERVER HOOK
-   ============================================ */
-function useReveal() {
-  const ref = useRef(null);
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+
+      const sections = ["beranda", "produk", "keunggulan", "testimoni"];
+      let current = "";
+      for (const id of sections) {
+        const el = document.getElementById(id);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= 150) {
+            current = id;
+          }
+        }
+      }
+      setActiveSection(current);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+
+    const io = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("visible");
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add("visible");
           }
         });
       },
       { threshold: 0.15 }
     );
-    const items = el.querySelectorAll(".reveal, .reveal-left, .reveal-right");
-    items.forEach((item) => observer.observe(item));
-    return () => observer.disconnect();
-  }, []);
-  return ref;
-}
+    document.querySelectorAll(".reveal").forEach((n) => io.observe(n));
 
-/* ============================================
-   NAVBAR COMPONENT
-   ============================================ */
-function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 10);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      io.disconnect();
+    };
   }, []);
 
-  const links = [
-    { label: "Beranda", href: "#beranda" },
-    { label: "Produk", href: "#produk" },
-    { label: "Keunggulan", href: "#keunggulan" },
-    { label: "Kontak", href: "#kontak" },
+  const navLinks = [
+    { name: "Beranda", id: "beranda" },
+    { name: "Produk", id: "produk" },
+    { name: "Keunggulan", id: "keunggulan" },
+    { name: "Testimoni", id: "testimoni" },
+  ];
+
+  const products = [
+    {
+      name: "Telur Ayam Ras",
+      img: "https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?w=400",
+      price: "Rp 27.000 / Kg",
+      desc: "1 Kg isi ±18 butir. Cocok untuk masak harian, kuning telur padat."
+    },
+    {
+      name: "Telur Ayam Kampung",
+      img: "https://images.unsplash.com/photo-1569288052389-dac9b0ac9eac?w=400",
+      price: "Rp 45.000 / Kg",
+      desc: "1 Kg isi ±12 butir. Lebih gurih, favorit MPASI dan menu sehat."
+    },
+    {
+      name: "Telur Omega-3",
+      img: "https://images.unsplash.com/photo-1510130387422-82bed34b37e9?w=400",
+      price: "Rp 55.000 / Kg",
+      desc: "1 Kg isi ±10 butir. Kaya nutrisi, cocok untuk keluarga aktif."
+    }
   ];
 
   return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? "bg-white/95 backdrop-blur-md shadow-lg shadow-amber-900/5"
-          : "bg-transparent"
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 sm:h-20">
-          {/* Logo */}
-          <a href="#beranda" className="flex items-center gap-1 group">
-            <span className="text-2xl sm:text-3xl font-extrabold text-[#1C1917] tracking-tight">
-              Ovara
-            </span>
-            <span className="w-2 h-2 rounded-full bg-amber-500 animate-blink mt-1" />
-            <span className="hidden sm:block text-xs text-amber-700 font-medium ml-2 border-l border-amber-300 pl-2">
-              Telur Segar Premium
-            </span>
+    <main className="min-h-screen">
+      {/* SECTION 1: ANNOUNCEMENT BAR */}
+      <div className="bg-[#F59E0B] py-2 overflow-hidden relative z-50">
+        <div className="marquee-track text-black text-sm font-semibold tracking-wide flex gap-4">
+          <span>🥚 Promo Jumat Berkah: Gratis Ongkir radius 5km Cibadak!</span>
+          <span>🥚 Promo Jumat Berkah: Gratis Ongkir radius 5km Cibadak!</span>
+          <span>🥚 Promo Jumat Berkah: Gratis Ongkir radius 5km Cibadak!</span>
+          <span>🥚 Promo Jumat Berkah: Gratis Ongkir radius 5km Cibadak!</span>
+        </div>
+      </div>
+
+      {/* SECTION 2: NAVBAR */}
+      <nav className={`fixed w-full z-40 transition-all duration-300 ${scrolled ? 'navbar-solid py-3' : 'navbar-transparent py-5'} top-9`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+          <a href="#beranda" className="flex items-center gap-2 group">
+            <div className="w-8 h-10 rounded-[50%] bg-[#F59E0B] border-2 border-white flex items-center justify-center group-hover:scale-105 transition-transform">
+              <span className="text-white text-xs">🥚</span>
+            </div>
+            <span className="text-white font-extrabold text-xl tracking-[0.2em]">OVARA</span>
           </a>
 
-          {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-8">
-            {links.map((link) => (
+            {navLinks.map(link => (
               <a
-                key={link.href}
-                href={link.href}
-                className="text-sm font-medium text-[#1C1917]/70 hover:text-amber-600 transition-colors relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-0.5 after:bg-amber-500 after:transition-all hover:after:w-full"
+                key={link.id}
+                href={`#${link.id}`}
+                className={`text-sm font-bold tracking-wide transition-colors ${
+                  activeSection === link.id ? 'text-[#F59E0B]' : 'text-white/80 hover:text-white'
+                } nav-link ${activeSection === link.id ? 'active' : ''}`}
               >
-                {link.label}
+                {link.name}
               </a>
             ))}
-            <a
-              href={waLink(defaultWaText)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-amber-500 hover:bg-amber-600 text-white font-semibold text-sm px-6 py-2.5 rounded-full transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/25 hover:-translate-y-0.5"
-            >
-              Pesan Sekarang
-            </a>
           </div>
 
-          {/* Mobile Hamburger */}
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="md:hidden flex flex-col gap-1.5 p-2"
-            aria-label="Toggle menu"
-          >
-            <span
-              className={`w-6 h-0.5 bg-[#1C1917] transition-all duration-300 ${
-                menuOpen ? "rotate-45 translate-y-2" : ""
-              }`}
-            />
-            <span
-              className={`w-6 h-0.5 bg-[#1C1917] transition-all duration-300 ${
-                menuOpen ? "opacity-0" : ""
-              }`}
-            />
-            <span
-              className={`w-6 h-0.5 bg-[#1C1917] transition-all duration-300 ${
-                menuOpen ? "-rotate-45 -translate-y-2" : ""
-              }`}
-            />
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
-      <div
-        className={`md:hidden transition-all duration-300 overflow-hidden ${
-          menuOpen ? "max-h-80 opacity-100" : "max-h-0 opacity-0"
-        } bg-white/95 backdrop-blur-md border-t border-amber-100`}
-      >
-        <div className="px-6 py-4 flex flex-col gap-3">
-          {links.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              onClick={() => setMenuOpen(false)}
-              className="text-sm font-medium text-[#1C1917]/70 hover:text-amber-600 py-2 transition-colors"
-            >
-              {link.label}
-            </a>
-          ))}
           <a
-            href={waLink(defaultWaText)}
+            href={WA_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-amber-500 hover:bg-amber-600 text-white font-semibold text-sm px-6 py-3 rounded-full text-center transition-all mt-2"
+            className="flex items-center justify-center w-10 h-10 rounded-full bg-[#F59E0B] text-white hover:bg-[#D97706] hover:scale-105 active:scale-95 transition-all"
           >
-            Pesan Sekarang
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+            </svg>
           </a>
         </div>
-      </div>
-    </nav>
-  );
-}
+      </nav>
 
-/* ============================================
-   MAIN PAGE COMPONENT
-   ============================================ */
-export default function Home() {
-  const sectionRef = useReveal();
+      {/* SECTION 3: HERO */}
+      <section id="beranda" className="relative min-h-screen flex items-center">
+        <img
+          src="https://images.unsplash.com/photo-1506976785307-8732e854ad03?w=1600"
+          alt="Kandang ayam Ovara"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-black/60" />
 
-  return (
-    <div ref={sectionRef}>
-      <Navbar />
-
-      {/* ===== HERO SECTION ===== */}
-      <section
-        id="beranda"
-        className="relative pt-24 sm:pt-32 pb-16 sm:pb-24 overflow-hidden"
-        style={{
-          background: "linear-gradient(180deg, #FFFBF0 0%, #FFFFFF 100%)",
-        }}
-      >
-        {/* Decorative blobs */}
-        <div className="absolute top-20 -left-32 w-64 h-64 bg-amber-200/30 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 -right-32 w-80 h-80 bg-amber-100/40 rounded-full blur-3xl" />
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            {/* Left content */}
-            <div className="reveal-left">
-              {/* Badge */}
-              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-amber-300 bg-amber-50 text-amber-700 text-sm font-medium mb-6">
-                🌿 Dipanen Segar Hari Ini
-              </span>
-
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight mb-6">
-                <span className="text-[#1C1917]">Telur Segar</span>
-                <br />
-                <span className="text-amber-600 italic">Premium Cibadak</span>
-              </h1>
-
-              <p className="text-lg text-[#1C1917]/60 leading-relaxed mb-8 max-w-lg">
-                Langsung dari kandang ke meja makan Anda. Telur ayam negeri, ayam
-                kampung, dan bebek segar dengan timbangan jujur dan kualitas
-                terjamin.
-              </p>
-
-              {/* Highlights */}
-              <div className="flex flex-wrap gap-4 mb-8">
-                {["Dipanen Hari Ini", "Timbangan Jujur", "Siap Antar"].map(
-                  (item) => (
-                    <span
-                      key={item}
-                      className="flex items-center gap-2 text-sm font-medium text-[#1C1917]/70"
-                    >
-                      <span className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xs">
-                        ✓
-                      </span>
-                      {item}
-                    </span>
-                  )
-                )}
-              </div>
-
-              {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4">
-                <a
-                  href={waLink(defaultWaText)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-base px-8 py-4 rounded-full transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/25 hover:-translate-y-0.5"
-                >
-                  Pesan via WhatsApp 🛒
-                </a>
-                <a
-                  href="#produk"
-                  className="inline-flex items-center justify-center gap-2 border-2 border-amber-500 text-amber-600 hover:bg-amber-50 font-bold text-base px-8 py-4 rounded-full transition-all duration-300"
-                >
-                  Lihat Produk
-                </a>
-              </div>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pt-20">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-4 py-2 mb-6 anim-fade-up">
+              <span className="w-2.5 h-2.5 rounded-full bg-red-500 anim-pulse-dot" />
+              <span className="text-white text-sm font-bold tracking-wide">Panen Hari Ini Tersedia</span>
             </div>
 
-            {/* Right image */}
-            <div className="relative reveal-right">
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-amber-900/20">
-                <img
-                  src="https://images.unsplash.com/photo-1569288052389-dac9b0ac6b0f?w=600&h=600&fit=crop&auto=format&q=80"
-                  alt="Telur segar premium Ovara"
-                  width={600}
-                  height={600}
-                  className="w-full h-auto object-cover"
-                />
-              </div>
-              {/* Floating badge */}
-              <div className="absolute -bottom-4 -left-4 sm:bottom-6 sm:left-6 glass px-4 py-3 rounded-2xl border border-amber-300/50 animate-float shadow-lg">
-                <div className="flex items-center gap-2">
-                  <span className="text-amber-500 text-lg">⭐</span>
-                  <div>
-                    <p className="text-sm font-bold text-[#1C1917]">
-                      4.9/5 Rating
-                    </p>
-                    <p className="text-xs text-[#1C1917]/60">
-                      Pelanggan
-                    </p>
+            <h1 className="text-5xl md:text-7xl font-extrabold text-white leading-[1.1] mb-2 anim-fade-up" style={{ animationDelay: '0.1s' }}>
+              Langsung dari<br/>Kandang ke
+            </h1>
+            <h1 className="text-5xl md:text-7xl font-extrabold text-[#F59E0B] italic mb-6 anim-fade-up" style={{ animationDelay: '0.2s' }}>
+              Dapurmu.
+            </h1>
+
+            <p className="text-lg text-white/90 mb-10 max-w-xl leading-relaxed anim-fade-up" style={{ animationDelay: '0.3s' }}>
+              Telur ayam segar premium langsung dari kandang Cibadak.<br/>
+              Kuning telur padat, cangkang bersih, dijamin 100% segar.<br/>
+              Pesan hari ini, nikmati kesegarannya!
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 anim-fade-up" style={{ animationDelay: '0.4s' }}>
+              <a
+                href="#produk"
+                className="inline-flex justify-center items-center px-8 py-4 bg-[#F59E0B] hover:bg-[#D97706] text-white rounded-full font-bold transition-all hover:scale-105 active:scale-95"
+              >
+                Lihat Menu Pilihan &rsaquo;
+              </a>
+              <a
+                href="#testimoni"
+                className="inline-flex justify-center items-center px-8 py-4 bg-[#2A2A2A] hover:bg-[#333333] text-white rounded-full font-bold transition-all border border-white/10 hover:border-white/30"
+              >
+                <span className="text-[#F59E0B] mr-2">⭐⭐⭐⭐⭐</span>
+                100+ Ulasan Pelanggan Puas
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 4: PRODUK */}
+      <section id="produk" className="py-24 bg-gradient-to-b from-white to-[#FFFBEB]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-16 reveal">
+            <h2 className="text-4xl md:text-5xl font-extrabold text-[#92400E] mb-4">Pilih Telurmu</h2>
+            <p className="text-lg text-stone-600">Kami menyediakan berbagai jenis telur ayam segar untuk kebutuhan dapur Anda.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {products.map((p, i) => (
+              <div key={i} className="bg-white rounded-2xl shadow-xl shadow-[#D97706]/5 border border-[#FDE68A]/30 overflow-hidden hover:-translate-y-2 transition-transform duration-300 reveal group" style={{ transitionDelay: `${i * 100}ms` }}>
+                <div className="relative h-64 overflow-hidden">
+                  <img src={p.img} alt={p.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                  <div className="absolute top-4 right-4 bg-[#F59E0B] text-black text-xs font-black uppercase tracking-wider px-3 py-1.5 rounded-full shadow-lg">
+                    Premium
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ===== STATS SECTION ===== */}
-      <section
-        className="py-12 sm:py-16"
-        style={{
-          background: "linear-gradient(135deg, #D97706 0%, #B45309 100%)",
-        }}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-            {stats.map((stat, i) => (
-              <div
-                key={i}
-                className="reveal text-center"
-                style={{ transitionDelay: `${i * 100}ms` }}
-              >
-                <p className="text-3xl sm:text-4xl font-extrabold text-white mb-1">
-                  {stat.value}
-                </p>
-                <p className="text-sm sm:text-base text-white/80 font-medium">
-                  {stat.label}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ===== PRODUK SECTION ===== */}
-      <section id="produk" className="py-16 sm:py-24 bg-[#FFFBF0]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
-          <div className="text-center mb-12 sm:mb-16 reveal">
-            <span className="text-amber-600 font-bold text-sm tracking-widest uppercase">
-              Produk Kami
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#1C1917] mt-3 mb-4">
-              Pilih Telur Segar Anda
-            </h2>
-            <p className="text-[#1C1917]/60 max-w-2xl mx-auto text-base sm:text-lg">
-              Semua telur dipanen segar setiap hari dengan kualitas premium dan
-              timbangan yang selalu jujur
-            </p>
-          </div>
-
-          {/* Product Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {products.map((product, i) => (
-              <div
-                key={i}
-                className="reveal group bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl hover:shadow-amber-900/10 transition-all duration-500 hover:-translate-y-2 border border-amber-100/50"
-                style={{ transitionDelay: `${i * 150}ms` }}
-              >
-                {/* Image */}
-                <div className="relative h-52 overflow-hidden">
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    className="object-cover group-hover:scale-110 transition-transform duration-700"
-                  />
-                  <span
-                    className={`absolute top-4 left-4 ${product.badgeColor} px-3 py-1 rounded-full text-xs font-bold shadow-md`}
-                  >
-                    {product.badge}
-                  </span>
-                </div>
-
-                {/* Content */}
+                
                 <div className="p-6">
-                  <h3 className="text-xl font-bold text-[#1C1917] mb-2">
-                    {product.name}
-                  </h3>
-                  <p className="text-sm text-[#1C1917]/60 leading-relaxed mb-4">
-                    {product.desc}
-                  </p>
-
-                  {/* Features */}
-                  <ul className="space-y-2 mb-6">
-                    {product.features.map((f, j) => (
-                      <li
-                        key={j}
-                        className="flex items-center gap-2 text-sm text-[#1C1917]/70"
-                      >
-                        <span className="text-green-500 font-bold">✓</span>
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
-
-                  {/* Price & CTA */}
-                  <div className="flex items-center justify-between pt-4 border-t border-amber-100">
-                    <span className="text-2xl font-extrabold text-amber-600">
-                      {product.price}
-                    </span>
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="text-xl font-extrabold text-[#451A03]">{p.name}</h3>
+                  </div>
+                  <div className="text-2xl font-extrabold text-[#D97706] mb-3">{p.price}</div>
+                  
+                  <div className="inline-block bg-[#FEF3C7] text-[#D97706] text-xs font-bold px-2.5 py-1 rounded-md mb-4">
+                    Stok Tersedia
+                  </div>
+                  
+                  <p className="text-stone-500 text-sm mb-6 min-h-[40px] leading-relaxed">{p.desc}</p>
+                  
+                  <div className="flex items-center gap-4 bg-[#FFFBEB] p-2 rounded-full border border-[#FDE68A]">
+                    <div className="flex items-center gap-4 bg-white rounded-full px-2 py-1 shadow-sm border border-[#FDE68A]/50 flex-1 justify-center">
+                      <button onClick={() => updateQty(p.name, -1)} className="qty-btn">-</button>
+                      <span className="font-bold text-[#92400E] w-8 text-center">{qty[p.name]} KG</span>
+                      <button onClick={() => updateQty(p.name, 1)} className="qty-btn">+</button>
+                    </div>
                     <a
-                      href={waLink(product.waText)}
+                      href={getWaLink(p.name, qty[p.name])}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="bg-amber-500 hover:bg-amber-600 text-white font-semibold text-sm px-5 py-2.5 rounded-full transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/25"
+                      className="bg-[#F59E0B] hover:bg-[#D97706] text-white p-3 rounded-full transition-colors shrink-0"
                     >
-                      Pesan 🛒
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                      </svg>
                     </a>
                   </div>
                 </div>
@@ -491,314 +245,228 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===== KEUNGGULAN SECTION ===== */}
-      <section id="keunggulan" className="py-16 sm:py-24 bg-white">
+      {/* SECTION 5: KEUNGGULAN */}
+      <section id="keunggulan" className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
-          <div className="text-center mb-12 sm:mb-16 reveal">
-            <span className="text-amber-600 font-bold text-sm tracking-widest uppercase">
-              Kenapa Pilih Kami
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#1C1917] mt-3 mb-4">
-              Kenapa Pilih Ovara?
-            </h2>
+          <div className="text-center max-w-2xl mx-auto mb-16 reveal">
+            <h2 className="text-4xl md:text-5xl font-extrabold text-stone-900 mb-4">Keunggulan Ovara</h2>
+            <p className="text-lg text-stone-600">Kami memastikan kualitas terbaik dari kandang hingga ke piring Anda.</p>
           </div>
-
-          {/* Advantage Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 lg:gap-8">
-            {advantages.map((adv, i) => (
-              <div
-                key={i}
-                className="reveal glass-amber rounded-2xl p-8 hover:shadow-xl hover:shadow-amber-900/5 transition-all duration-500 hover:-translate-y-1 group"
-                style={{ transitionDelay: `${i * 100}ms` }}
-              >
-                <span className="text-4xl mb-4 block group-hover:scale-110 transition-transform duration-300">
-                  {adv.icon}
-                </span>
-                <h3 className="text-xl font-bold text-[#1C1917] mb-3">
-                  {adv.title}
-                </h3>
-                <p className="text-[#1C1917]/60 leading-relaxed">{adv.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ===== TESTIMONI SECTION ===== */}
-      <section className="py-16 sm:py-24 bg-[#FFFBF0]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
-          <div className="text-center mb-12 sm:mb-16 reveal">
-            <span className="text-amber-600 font-bold text-sm tracking-widest uppercase">
-              Kata Mereka
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#1C1917] mt-3 mb-4">
-              Apa Kata Pelanggan Ovara?
-            </h2>
-          </div>
-
-          {/* Testimonial Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-            {testimonials.map((t, i) => (
-              <div
-                key={i}
-                className="reveal bg-white rounded-2xl p-8 border border-amber-200 hover:shadow-xl hover:shadow-amber-900/5 transition-all duration-500 hover:-translate-y-1"
-                style={{ transitionDelay: `${i * 150}ms` }}
-              >
-                {/* Stars */}
-                <div className="flex gap-1 mb-4">
-                  {[...Array(5)].map((_, j) => (
-                    <span key={j} className="text-amber-400 text-lg">
-                      ⭐
-                    </span>
-                  ))}
-                </div>
-                <p className="text-[#1C1917]/70 leading-relaxed mb-6 italic">
-                  &ldquo;{t.text}&rdquo;
-                </p>
-                <div className="flex items-center gap-3 pt-4 border-t border-amber-100">
-                  <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 font-bold text-sm">
-                    {t.name.charAt(0)}
-                  </div>
-                  <div>
-                    <p className="font-bold text-[#1C1917] text-sm">
-                      {t.name}
-                    </p>
-                    <p className="text-xs text-[#1C1917]/50">{t.location}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ===== CARA PESAN SECTION ===== */}
-      <section
-        className="py-16 sm:py-24"
-        style={{
-          background: "linear-gradient(135deg, #D97706 0%, #B45309 100%)",
-        }}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white text-center mb-12 sm:mb-16 reveal">
-            Cara Pesan Mudah
-          </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {steps.map((step, i) => (
-              <div
-                key={i}
-                className="reveal text-center"
-                style={{ transitionDelay: `${i * 150}ms` }}
-              >
-                <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center mx-auto mb-6 border border-white/30">
-                  <span className="text-2xl font-extrabold text-white">
-                    {step.num}
-                  </span>
+            {[
+              {
+                icon: <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M11.996 4c-3.13 0-5.748 3.514-6.402 7.641-.444 2.802.26 5.674 2.124 7.54C9.176 20.64 10.552 21 11.996 21c1.444 0 2.82-.36 4.278-1.819 1.864-1.866 2.568-4.738 2.124-7.54C17.744 7.514 15.126 4 11.996 4z" /></svg>,
+                title: "Segar Dipanen Hari Ini",
+                desc: "Dipanen dari kandang bersih Cibadak, memastikan telur segar tanpa bau amis."
+              },
+              {
+                icon: <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0012 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.988 5.988 0 01-2.031.352 5.988 5.988 0 01-2.031-.352c-.483-.174-.711-.703-.59-1.202L18.75 4.971zm-16.5.52c.99-.203 1.99-.377 3-.52m0 0l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.989 5.989 0 01-2.031.352 5.989 5.989 0 01-2.031-.352c-.483-.174-.711-.703-.59-1.202L5.25 4.971z" /></svg>,
+                title: "Timbangan Jujur",
+                desc: "1 Kg ditimbang pas sebelum dikemas. Anda mendapatkan kualitas premium tanpa kekurangan."
+              },
+              {
+                icon: <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" /></svg>,
+                title: "Antar ke Lokasi",
+                desc: "Pesan pagi dikirim siang. Gratis ongkir radius 5km dari Cibadak."
+              }
+            ].map((k, i) => (
+              <div key={i} className="bg-[#F3F4F6] rounded-3xl p-10 reveal hover:-translate-y-2 transition-transform duration-300" style={{ transitionDelay: `${i * 100}ms` }}>
+                <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-[#D97706] mb-6 shadow-sm">
+                  {k.icon}
                 </div>
-                <h3 className="text-xl font-bold text-white mb-3">
-                  {step.title}
-                </h3>
-                <p className="text-white/80 leading-relaxed max-w-xs mx-auto">
-                  {step.desc}
-                </p>
+                <h3 className="text-xl font-bold text-stone-900 mb-3">{k.title}</h3>
+                <p className="text-stone-500 leading-relaxed">{k.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ===== KONTAK & LOKASI SECTION ===== */}
-      <section id="kontak" className="py-16 sm:py-24 bg-white">
+      {/* SECTION 6: GALERI KEUNGGULAN */}
+      <section className="py-24 bg-white overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
-            {/* Left - Contact Info */}
-            <div className="reveal-left">
-              <span className="text-amber-600 font-bold text-sm tracking-widest uppercase">
-                Kontak
-              </span>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#1C1917] mt-3 mb-8">
-                Hubungi Kami
-              </h2>
+          <div className="mb-16 max-w-2xl reveal">
+            <h2 className="text-4xl md:text-5xl font-extrabold text-stone-900 mb-4">Melihat Langsung Kualitas Kami</h2>
+            <p className="text-lg text-stone-600">Dari kandang bersih yang terawat, hingga proses penimbangan yang jujur. Inilah komitmen Ovara untuk Anda.</p>
+          </div>
 
-              <div className="space-y-5 mb-8">
-                <div className="flex items-start gap-4">
-                  <span className="text-2xl">📍</span>
-                  <div>
-                    <p className="font-semibold text-[#1C1917]">Alamat</p>
-                    <p className="text-[#1C1917]/60">
-                      Cibadak, Sukabumi, Jawa Barat
-                    </p>
-                  </div>
+          <div className="gallery-grid reveal">
+            {/* Foto Besar */}
+            <div className="gallery-big relative rounded-3xl overflow-hidden group h-[400px] md:h-auto">
+              <img 
+                src="https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=600" 
+                alt="Kandang Bersih Ovara" 
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+              <div className="absolute bottom-6 left-6 md:bottom-10 md:left-10">
+                <div className="bg-white px-4 py-2 rounded-xl inline-block mb-2 shadow-lg">
+                  <h4 className="font-extrabold text-stone-900 text-lg">Kandang Bersih</h4>
                 </div>
-                <div className="flex items-start gap-4">
-                  <span className="text-2xl">📱</span>
-                  <div>
-                    <p className="font-semibold text-[#1C1917]">WhatsApp</p>
-                    <p className="text-[#1C1917]/60">+62 819-9652-2114</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <span className="text-2xl">🕐</span>
-                  <div>
-                    <p className="font-semibold text-[#1C1917]">Jam Layanan</p>
-                    <p className="text-[#1C1917]/60">07.00 - 20.00 WIB</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <span className="text-2xl">🚚</span>
-                  <div>
-                    <p className="font-semibold text-[#1C1917]">Area Antar</p>
-                    <p className="text-[#1C1917]/60">
-                      Cibadak & sekitar Sukabumi
-                    </p>
-                  </div>
-                </div>
+                <p className="text-white font-medium flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5"><path fillRule="evenodd" d="M9.69 18.933l.003.001C9.89 19.02 10 19 10 19s.11.02.308-.066l.002-.001.006-.003.018-.008a5.741 5.741 0 00.281-.14c.186-.096.446-.24.757-.433.62-.384 1.445-.966 2.274-1.765C15.302 14.988 17 12.493 17 9A7 7 0 103 9c0 3.492 1.698 5.988 3.355 7.584a13.731 13.731 0 002.273 1.765 11.842 11.842 0 00.976.544l.062.029.018.008.006.003zM10 11.25a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5z" clipRule="evenodd" /></svg>
+                  Cibadak, Sukabumi
+                </p>
               </div>
-
-              <a
-                href={waLink(defaultWaText)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full inline-flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-base px-8 py-4 rounded-full transition-all duration-300 hover:shadow-xl hover:shadow-amber-500/25 hover:-translate-y-0.5"
-              >
-                Chat WhatsApp Sekarang 💬
-              </a>
             </div>
 
-            {/* Right - Map */}
-            <div className="reveal-right">
-              <div className="rounded-2xl overflow-hidden border-2 border-amber-200 shadow-lg h-full min-h-[300px]">
-                <iframe
-                  src="https://www.google.com/maps?q=Cibadak,+Sukabumi,+Jawa+Barat&output=embed"
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0, minHeight: "300px" }}
-                  allowFullScreen
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  title="Lokasi Ovara - Cibadak, Sukabumi"
-                />
+            {/* Foto Kecil Atas */}
+            <div className="relative rounded-3xl overflow-hidden group h-[200px] md:h-auto">
+              <img 
+                src="https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=400" 
+                alt="Dipanen Segar" 
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <div className="absolute bottom-5 left-5">
+                <span className="bg-[#FFFBEB] text-[#D97706] font-bold px-3 py-1.5 rounded-lg text-sm shadow-md">
+                  Dipanen Segar
+                </span>
+              </div>
+            </div>
+
+            {/* 2 Kotak Info Bawah */}
+            <div className="grid grid-cols-2 gap-4 md:gap-5 h-[200px] md:h-auto">
+              <div className="bg-[#F59E0B] rounded-3xl p-6 flex flex-col justify-end relative overflow-hidden group hover:bg-[#D97706] transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12 text-white/30 absolute -right-2 -top-2 group-hover:scale-110 transition-transform"><path strokeLinecap="round" strokeLinejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z" /><path strokeLinecap="round" strokeLinejoin="round" d="M12 18a3.75 3.75 0 00.495-7.467 5.99 5.99 0 00-1.925 3.546 5.974 5.974 0 01-2.133-1A3.75 3.75 0 0012 18z" /></svg>
+                <span className="text-4xl mb-3">🔥</span>
+                <h4 className="text-white font-extrabold text-lg md:text-xl leading-tight">Kandang Terawat</h4>
+              </div>
+              <div className="bg-[#F59E0B] rounded-3xl p-6 flex flex-col justify-end relative overflow-hidden group hover:bg-[#D97706] transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12 text-white/30 absolute -right-2 -top-2 group-hover:scale-110 transition-transform"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0012 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.988 5.988 0 01-2.031.352 5.988 5.988 0 01-2.031-.352c-.483-.174-.711-.703-.59-1.202L18.75 4.971zm-16.5.52c.99-.203 1.99-.377 3-.52m0 0l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.989 5.989 0 01-2.031.352 5.989 5.989 0 01-2.031-.352c-.483-.174-.711-.703-.59-1.202L5.25 4.971z" /></svg>
+                <span className="text-4xl mb-3">⚖️</span>
+                <h4 className="text-white font-extrabold text-lg md:text-xl leading-tight">Timbangan Jujur</h4>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ===== FOOTER ===== */}
-      <footer className="bg-[#1C1917] py-12 sm:py-16">
+      {/* SECTION 7: B2B BANNER */}
+      <section className="py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
-            {/* Brand */}
-            <div>
-              <div className="flex items-center gap-1 mb-3">
-                <span className="text-2xl font-extrabold text-white">
-                  Ovara
+          <div className="bg-[#D97706] rounded-[2rem] p-8 md:p-14 relative overflow-hidden reveal shadow-2xl shadow-[#D97706]/20">
+            {/* Background Decor */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+            
+            <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-10">
+              <div className="max-w-2xl">
+                <span className="inline-block bg-[#FEF3C7] text-[#92400E] font-black uppercase tracking-wider text-xs px-3 py-1.5 rounded-full mb-6">
+                  Khusus B2B
                 </span>
-                <span className="w-2 h-2 rounded-full bg-amber-500 mt-1" />
+                <h2 className="text-4xl md:text-5xl font-extrabold text-white mb-4">Punya Usaha Kuliner?</h2>
+                <p className="text-lg text-white/90 leading-relaxed">
+                  Dapatkan suplai telur ayam segar secara rutin dengan harga khusus grosir untuk Warung Makan, Katering, atau Toko Anda.
+                </p>
               </div>
-              <p className="text-amber-500 font-medium text-sm mb-3">
-                Telur Segar Premium
-              </p>
-              <p className="text-white/50 text-sm leading-relaxed">
-                Segar dari Kandang, Langsung ke Meja Anda
-              </p>
-            </div>
-
-            {/* Links */}
-            <div>
-              <h4 className="text-white font-bold text-sm mb-4 uppercase tracking-wider">
-                Menu
-              </h4>
-              <div className="flex flex-col gap-2.5">
-                {["Beranda", "Produk", "Keunggulan", "Kontak"].map((link) => (
-                  <a
-                    key={link}
-                    href={`#${link.toLowerCase()}`}
-                    className="text-white/50 hover:text-amber-500 text-sm transition-colors"
-                  >
-                    {link}
-                  </a>
-                ))}
-              </div>
-            </div>
-
-            {/* Social */}
-            <div>
-              <h4 className="text-white font-bold text-sm mb-4 uppercase tracking-wider">
-                Ikuti Kami
-              </h4>
-              <div className="flex gap-4">
+              <div className="shrink-0 flex flex-col items-center md:items-end">
                 <a
-                  href={waLink(defaultWaText)}
+                  href={WA_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-amber-500 flex items-center justify-center text-white transition-all duration-300 hover:-translate-y-1"
-                  aria-label="WhatsApp"
+                  className="bg-white text-[#451A03] font-bold text-lg px-8 py-4 rounded-full shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-2 mb-3"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                  </svg>
+                  💬 Hubungi Kami
                 </a>
-                <a
-                  href="#"
-                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-amber-500 flex items-center justify-center text-white transition-all duration-300 hover:-translate-y-1"
-                  aria-label="Instagram"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
-                  </svg>
-                </a>
+                <span className="text-white/80 text-sm italic">*(Minimal pembelian 10 Kg)*</span>
               </div>
             </div>
           </div>
+        </div>
+      </section>
 
-          {/* Copyright */}
-          <div className="pt-8 border-t border-white/10 text-center">
-            <p className="text-white/40 text-sm">
-              © 2026 Ovara. All rights reserved.
-            </p>
+      {/* SECTION 8: TESTIMONI */}
+      <section id="testimoni" className="py-24 bg-gradient-to-b from-[#FFFBEB] to-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-16 reveal">
+            <h2 className="text-4xl md:text-5xl font-extrabold text-stone-900 mb-4">Kata Mereka</h2>
+            <p className="text-lg text-stone-600">Lebih dari 100+ keluarga di Sukabumi telah mempercayakan kebutuhan telur mereka kepada Ovara.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                text: "Telurnya fresh banget, kuning telurnya padat dan bagus. Suami sampai minta dimasak tiap hari!",
+                name: "Ibu Ratna",
+                initial: "R"
+              },
+              {
+                text: "Benar-benar masih segar pas sampai! Cangkang bersih, beda sama yang di pasar. Pokoknya mantap.",
+                name: "Bapak Budi",
+                initial: "B"
+              },
+              {
+                text: "Timbangan jujur dan telurnya besar-besar. Langganan terus buat stok warung setiap minggu.",
+                name: "Teh Nisa",
+                initial: "N"
+              }
+            ].map((t, i) => (
+              <div key={i} className="bg-white p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] reveal hover:-translate-y-2 transition-transform duration-300" style={{ transitionDelay: `${i * 100}ms` }}>
+                <div className="text-[#F59E0B] text-xl mb-6 tracking-widest">⭐⭐⭐⭐⭐</div>
+                <p className="text-stone-600 italic leading-relaxed mb-8 h-24">"{t.text}"</p>
+                <div className="flex items-center gap-4 pt-6 border-t border-stone-100">
+                  <div className="w-12 h-12 bg-[#FDE68A] text-[#92400E] rounded-full flex items-center justify-center font-black text-xl">
+                    {t.initial}
+                  </div>
+                  <h4 className="font-extrabold text-stone-900">{t.name}</h4>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 9: FOOTER */}
+      <footer className="bg-[#111111] py-16 text-white/70">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
+            <div>
+              <a href="#beranda" className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-10 rounded-[50%] bg-[#F59E0B] flex items-center justify-center">
+                  <span className="text-white text-xs">🥚</span>
+                </div>
+                <span className="text-white font-extrabold text-xl tracking-[0.2em]">OVARA</span>
+              </a>
+              <p className="text-lg font-medium text-white mb-6">Telur Segar, Keluarga Bahagia</p>
+              <p className="text-sm">Beli telur ayam segar langsung dari kandang Cibadak, Sukabumi. Dipanen hari ini, timbangan jujur, siap antar ke lokasimu.</p>
+            </div>
+
+            <div>
+              <h4 className="text-white font-bold mb-6 tracking-wide uppercase text-sm">Menu</h4>
+              <ul className="space-y-4">
+                {navLinks.map(l => (
+                  <li key={l.id}>
+                    <a href={`#${l.id}`} className="hover:text-[#F59E0B] transition-colors">{l.name}</a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-white font-bold mb-6 tracking-wide uppercase text-sm">Kontak</h4>
+              <ul className="space-y-4">
+                <li>
+                  <a href={WA_URL} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 hover:text-[#F59E0B] transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/></svg>
+                    WhatsApp
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="flex items-center gap-3 hover:text-[#F59E0B] transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.917 3.917 0 0 0-1.417.923A3.927 3.927 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.916 3.916 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.926 3.926 0 0 0-.923-1.417A3.911 3.911 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0h.003zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.036 1.204.166 1.486.275.373.145.64.319.92.599.28.28.453.546.598.92.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.47 2.47 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.478 2.478 0 0 1-.92-.598 2.48 2.48 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233 0-2.136.008-2.388.046-3.231.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92.28-.28.546-.453.92-.598.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045v.002zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92zm-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217zm0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334z"/></svg>
+                    @ovara.id
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="pt-8 border-t border-white/10 text-center text-sm">
+            <p>&copy; {new Date().getFullYear()} Ovara. All rights reserved.</p>
           </div>
         </div>
       </footer>
-
-      {/* ===== FLOATING WHATSAPP BUTTON ===== */}
-      <a
-        href={waLink(defaultWaText)}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-[#25D366] hover:bg-[#20bd5a] rounded-full flex items-center justify-center shadow-lg shadow-green-500/30 animate-pulse-glow transition-all duration-300 hover:scale-110 group"
-        aria-label="Pesan Sekarang via WhatsApp"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="28"
-          height="28"
-          fill="white"
-          viewBox="0 0 24 24"
-        >
-          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-        </svg>
-
-        {/* Tooltip */}
-        <span className="absolute right-16 bg-[#1C1917] text-white text-xs font-medium px-3 py-1.5 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-          Pesan Sekarang
-        </span>
-      </a>
-    </div>
+    </main>
   );
 }

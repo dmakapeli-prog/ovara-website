@@ -1,24 +1,22 @@
-import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
-const plusJakarta = Plus_Jakarta_Sans({
-  variable: "--font-plus-jakarta",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-});
-
 export const metadata = {
-  title: "Ovara | Telur Segar Premium Cibadak",
-  description:
-    "Beli telur segar premium langsung dari Cibadak. Telur ayam negeri, ayam kampung, dan bebek segar dipanen hari ini. Timbangan jujur, siap antar ke seluruh Cibadak & Sukabumi.",
-  keywords:
-    "jual telur segar, telur Cibadak, telur Sukabumi, telur ayam kampung, telur bebek, Ovara",
+  title: "Ovara | Telur Ayam Segar Premium Cibadak",
+  description: "Beli telur ayam segar langsung dari kandang Cibadak, Sukabumi. Dipanen hari ini, timbangan jujur, siap antar ke lokasimu.",
+  keywords: "jual telur ayam, telur segar, telur ayam kampung, telur omega-3, Ovara, Cibadak, Sukabumi",
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="id" className={`${plusJakarta.variable} antialiased`}>
-      <body className="min-h-screen flex flex-col">{children}</body>
+    <html lang="id">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600;1,700;1,800&display=swap" rel="stylesheet" />
+      </head>
+      <body className="antialiased bg-white text-stone-900 overflow-x-hidden">
+        {children}
+      </body>
     </html>
   );
 }
