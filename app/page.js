@@ -5,25 +5,95 @@ import { useEffect, useState } from "react";
 const WA_NUMBER = "6281234567890";
 const WA_URL = `https://wa.me/${WA_NUMBER}`;
 
+const products = [
+  {
+    name: "Telur Ayam Negeri",
+    img: "https://images.unsplash.com/photo-1518569656558-1f25e69d2fd4?w=400",
+    price: 27000,
+    priceLabel: "Rp 27.000 / Kg",
+    stock: "Tersedia",
+    desc: "1 Kg isi ±18 butir. Cocok untuk masak harian, kuning telur padat."
+  },
+  {
+    name: "Telur Ayam Kampung",
+    img: "https://images.unsplash.com/photo-1491524062933-cb0289261700?w=400",
+    price: 45000,
+    priceLabel: "Rp 45.000 / Kg",
+    stock: "Tersedia",
+    desc: "1 Kg isi ±12 butir. Lebih gurih, favorit MPASI dan menu sehat."
+  },
+  {
+    name: "Telur Bebek",
+    img: "https://images.unsplash.com/photo-1587486937303-a31014873bc6?w=400",
+    price: 35000,
+    priceLabel: "Rp 35.000 / Kg",
+    stock: "Tersedia",
+    desc: "1 Kg isi ±8 butir. Cocok untuk asin, martabak, dan kue tradisional."
+  },
+  {
+    name: "Telur Omega-3",
+    img: "https://images.unsplash.com/photo-1510130387422-82bed34b37e9?w=400",
+    price: 55000,
+    priceLabel: "Rp 55.000 / Kg",
+    stock: "Tersedia",
+    desc: "1 Kg isi ±10 butir. Kaya nutrisi, cocok untuk keluarga aktif."
+  }
+];
+
+function formatRupiah(n) {
+  return "Rp " + n.toLocaleString("id-ID");
+}
+
 export default function Home() {
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState("");
 
-  const [qty, setQty] = useState({
-    "Telur Ayam Ras": 1,
-    "Telur Ayam Kampung": 1,
-    "Telur Omega-3": 1
+  // Cart state: { "Telur Ayam Negeri": 2, ... }
+  const [cart, setCart] = useState({});
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // Qty selector per product card (starts at 1)
+  const [qty, setQty] = useState(() => {
+    const init = {};
+    products.forEach(p => { init[p.name] = 1; });
+    return init;
   });
 
   const updateQty = (name, delta) => {
     setQty(prev => ({
       ...prev,
-      [name]: Math.max(1, prev[name] + delta)
+      [name]: Math.max(1, (prev[name] || 1) + delta)
     }));
   };
 
-  const getWaLink = (productName, quantity) => {
-    const text = `Halo Ovara, saya mau pesan ${productName} sebanyak ${quantity} Kg.`;
+  const addToCart = (name, amount) => {
+    setCart(prev => ({
+      ...prev,
+      [name]: (prev[name] || 0) + amount
+    }));
+    // Reset qty selector back to 1
+    setQty(prev => ({ ...prev, [name]: 1 }));
+  };
+
+  const removeFromCart = (name) => {
+    setCart(prev => {
+      const next = { ...prev };
+      delete next[name];
+      return next;
+    });
+  };
+
+  const cartItems = products.filter(p => cart[p.name] && cart[p.name] > 0);
+  const cartCount = cartItems.length;
+  const cartTotal = cartItems.reduce((sum, p) => sum + p.price * cart[p.name], 0);
+
+  const getWhatsAppCartLink = () => {
+    if (cartItems.length === 0) return WA_URL;
+    let lines = cartItems.map(p => {
+      const subtotal = p.price * cart[p.name];
+      return `- ${p.name}: ${cart[p.name]} Kg = ${formatRupiah(subtotal)}`;
+    });
+    const text = `Halo Ovara, saya mau pesan:\n${lines.join("\n")}\nTotal: ${formatRupiah(cartTotal)}\nMohon konfirmasi ketersediaan. Terima kasih!`;
     return `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
   };
 
@@ -66,32 +136,30 @@ export default function Home() {
     };
   }, []);
 
+  // Close drawer on Escape key
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key === "Escape") setDrawerOpen(false);
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, []);
+
+  // Prevent body scroll when drawer open
+  useEffect(() => {
+    if (drawerOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [drawerOpen]);
+
   const navLinks = [
     { name: "Beranda", id: "beranda" },
     { name: "Produk", id: "produk" },
     { name: "Keunggulan", id: "keunggulan" },
     { name: "Testimoni", id: "testimoni" },
-  ];
-
-  const products = [
-    {
-      name: "Telur Ayam Ras",
-      img: "https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?w=400",
-      price: "Rp 27.000 / Kg",
-      desc: "1 Kg isi ±18 butir. Cocok untuk masak harian, kuning telur padat."
-    },
-    {
-      name: "Telur Ayam Kampung",
-      img: "https://images.unsplash.com/photo-1569288052389-dac9b0ac9eac?w=400",
-      price: "Rp 45.000 / Kg",
-      desc: "1 Kg isi ±12 butir. Lebih gurih, favorit MPASI dan menu sehat."
-    },
-    {
-      name: "Telur Omega-3",
-      img: "https://images.unsplash.com/photo-1510130387422-82bed34b37e9?w=400",
-      price: "Rp 55.000 / Kg",
-      desc: "1 Kg isi ±10 butir. Kaya nutrisi, cocok untuk keluarga aktif."
-    }
   ];
 
   return (
@@ -130,18 +198,119 @@ export default function Home() {
             ))}
           </div>
 
-          <a
-            href={WA_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center w-10 h-10 rounded-full bg-[#F59E0B] text-white hover:bg-[#D97706] hover:scale-105 active:scale-95 transition-all"
+          {/* Cart Icon with Badge */}
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="relative flex items-center justify-center w-10 h-10 rounded-full bg-[#F59E0B] text-white hover:bg-[#D97706] hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            aria-label="Buka Keranjang Belanja"
+            id="cart-button"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
               <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
             </svg>
-          </a>
+            {cartCount > 0 && (
+              <span className="cart-badge">{cartCount}</span>
+            )}
+          </button>
         </div>
       </nav>
+
+      {/* CART DRAWER OVERLAY */}
+      <div
+        className={`fixed inset-0 bg-black/50 z-50 transition-opacity duration-300 ${drawerOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        onClick={() => setDrawerOpen(false)}
+        id="cart-overlay"
+      />
+
+      {/* CART DRAWER */}
+      <div
+        className={`fixed top-0 right-0 h-full w-full max-w-md bg-white z-50 shadow-2xl transform transition-transform duration-300 ease-in-out ${drawerOpen ? 'translate-x-0' : 'translate-x-full'}`}
+        id="cart-drawer"
+      >
+        <div className="flex flex-col h-full">
+          {/* Drawer Header */}
+          <div className="flex items-center justify-between p-6 border-b border-stone-100">
+            <h2 className="text-xl font-extrabold text-stone-900 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="text-[#D97706]">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+              </svg>
+              Keranjang Belanja
+            </h2>
+            <button
+              onClick={() => setDrawerOpen(false)}
+              className="w-10 h-10 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center transition-colors cursor-pointer"
+              aria-label="Tutup Keranjang"
+              id="cart-close"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Drawer Body */}
+          <div className="flex-1 overflow-y-auto p-6">
+            {cartItems.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-center">
+                <div className="w-24 h-24 bg-[#FEF3C7] rounded-full flex items-center justify-center mb-6">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="text-[#D97706]">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+                  </svg>
+                </div>
+                <p className="text-stone-500 text-lg font-semibold">Keranjang masih kosong</p>
+                <p className="text-stone-400 text-sm mt-2">Tambahkan produk dari katalog kami</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {cartItems.map(p => {
+                  const subtotal = p.price * cart[p.name];
+                  return (
+                    <div key={p.name} className="flex gap-4 bg-[#FFFBEB] rounded-2xl p-4 border border-[#FDE68A]/40" id={`cart-item-${p.name.replace(/\s+/g, '-').toLowerCase()}`}>
+                      <img src={p.img} alt={p.name} className="w-16 h-16 rounded-xl object-cover shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-stone-900 text-sm truncate">{p.name}</h4>
+                        <p className="text-[#D97706] font-extrabold text-sm mt-1">{cart[p.name]} Kg × {formatRupiah(p.price)}</p>
+                        <p className="text-stone-500 text-xs mt-0.5">Subtotal: <span className="font-bold text-stone-700">{formatRupiah(subtotal)}</span></p>
+                      </div>
+                      <button
+                        onClick={() => removeFromCart(p.name)}
+                        className="self-start w-8 h-8 rounded-full bg-red-50 hover:bg-red-100 flex items-center justify-center text-red-400 hover:text-red-600 transition-colors shrink-0 cursor-pointer"
+                        aria-label={`Hapus ${p.name}`}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                        </svg>
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Drawer Footer */}
+          {cartItems.length > 0 && (
+            <div className="border-t border-stone-100 p-6 bg-white">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-stone-500 font-semibold">Total</span>
+                <span className="text-2xl font-extrabold text-[#92400E]">{formatRupiah(cartTotal)}</span>
+              </div>
+              <a
+                href={getWhatsAppCartLink()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-3 bg-[#25D366] hover:bg-[#1DA851] text-white font-bold text-lg px-6 py-4 rounded-2xl transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-[#25D366]/30"
+                id="order-whatsapp"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
+                </svg>
+                Pesan via WhatsApp
+              </a>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* SECTION 3: HERO */}
       <section id="beranda" className="relative min-h-screen flex items-center">
@@ -199,44 +368,43 @@ export default function Home() {
             <p className="text-lg text-stone-600">Kami menyediakan berbagai jenis telur ayam segar untuk kebutuhan dapur Anda.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {products.map((p, i) => (
               <div key={i} className="bg-white rounded-2xl shadow-xl shadow-[#D97706]/5 border border-[#FDE68A]/30 overflow-hidden hover:-translate-y-2 transition-transform duration-300 reveal group" style={{ transitionDelay: `${i * 100}ms` }}>
-                <div className="relative h-64 overflow-hidden">
+                <div className="relative h-56 overflow-hidden">
                   <img src={p.img} alt={p.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                   <div className="absolute top-4 right-4 bg-[#F59E0B] text-black text-xs font-black uppercase tracking-wider px-3 py-1.5 rounded-full shadow-lg">
                     Premium
                   </div>
                 </div>
                 
-                <div className="p-6">
+                <div className="p-5">
                   <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-xl font-extrabold text-[#451A03]">{p.name}</h3>
+                    <h3 className="text-lg font-extrabold text-[#451A03]">{p.name}</h3>
                   </div>
-                  <div className="text-2xl font-extrabold text-[#D97706] mb-3">{p.price}</div>
+                  <div className="text-xl font-extrabold text-[#D97706] mb-2">{p.priceLabel}</div>
                   
-                  <div className="inline-block bg-[#FEF3C7] text-[#D97706] text-xs font-bold px-2.5 py-1 rounded-md mb-4">
-                    Stok Tersedia
+                  <div className="inline-block bg-[#FEF3C7] text-[#D97706] text-xs font-bold px-2.5 py-1 rounded-md mb-3">
+                    Stok {p.stock}
                   </div>
                   
-                  <p className="text-stone-500 text-sm mb-6 min-h-[40px] leading-relaxed">{p.desc}</p>
+                  <p className="text-stone-500 text-sm mb-5 min-h-[40px] leading-relaxed">{p.desc}</p>
                   
-                  <div className="flex items-center gap-4 bg-[#FFFBEB] p-2 rounded-full border border-[#FDE68A]">
-                    <div className="flex items-center gap-4 bg-white rounded-full px-2 py-1 shadow-sm border border-[#FDE68A]/50 flex-1 justify-center">
-                      <button onClick={() => updateQty(p.name, -1)} className="qty-btn">-</button>
-                      <span className="font-bold text-[#92400E] w-8 text-center">{qty[p.name]} KG</span>
-                      <button onClick={() => updateQty(p.name, 1)} className="qty-btn">+</button>
+                  <div className="flex items-center gap-3 bg-[#FFFBEB] p-2 rounded-full border border-[#FDE68A]">
+                    <div className="flex items-center gap-3 bg-white rounded-full px-2 py-1 shadow-sm border border-[#FDE68A]/50 flex-1 justify-center">
+                      <button onClick={() => updateQty(p.name, -1)} className="qty-btn" aria-label="Kurangi">-</button>
+                      <span className="font-bold text-[#92400E] w-8 text-center text-sm">{qty[p.name]} KG</span>
+                      <button onClick={() => updateQty(p.name, 1)} className="qty-btn" aria-label="Tambah">+</button>
                     </div>
-                    <a
-                      href={getWaLink(p.name, qty[p.name])}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-[#F59E0B] hover:bg-[#D97706] text-white p-3 rounded-full transition-colors shrink-0"
+                    <button
+                      onClick={() => addToCart(p.name, qty[p.name])}
+                      className="bg-[#F59E0B] hover:bg-[#D97706] text-white p-3 rounded-full transition-colors shrink-0 cursor-pointer active:scale-90"
+                      aria-label={`Tambah ${p.name} ke keranjang`}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
                         <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
                       </svg>
-                    </a>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -295,7 +463,7 @@ export default function Home() {
             {/* Foto Besar */}
             <div className="gallery-big relative rounded-3xl overflow-hidden group h-[400px] md:h-auto">
               <img 
-                src="https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=600" 
+                src="https://images.unsplash.com/photo-1518569656558-1f25e69d2fd4?w=600" 
                 alt="Kandang Bersih Ovara" 
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
@@ -314,7 +482,7 @@ export default function Home() {
             {/* Foto Kecil Atas */}
             <div className="relative rounded-3xl overflow-hidden group h-[200px] md:h-auto">
               <img 
-                src="https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=400" 
+                src="https://images.unsplash.com/photo-1491524062933-cb0289261700?w=400" 
                 alt="Dipanen Segar" 
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
