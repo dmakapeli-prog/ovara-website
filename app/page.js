@@ -9,7 +9,7 @@ const PRODUCTS = [
     price: 27000,
     stock: true,
     description: "1 Kg isi ±18 butir. Cocok untuk masak harian, kuning telur padat.",
-    image: "https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?w=400"
+    image: "https://images.unsplash.com/photo-1471193945509-9ad0617afabf?w=400&q=80"
   },
   {
     id: 2,
@@ -17,7 +17,7 @@ const PRODUCTS = [
     price: 45000,
     stock: true,
     description: "1 Kg isi ±12 butir. Lebih gurih, favorit MPASI dan menu sehat.",
-    image: "https://images.unsplash.com/photo-1569288052389-dac9b0ac9eac?w=400"
+    image: "https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=400&q=80"
   },
   {
     id: 3,
@@ -25,7 +25,7 @@ const PRODUCTS = [
     price: 35000,
     stock: true,
     description: "1 Kg isi ±8 butir. Cocok untuk asin, martabak, dan kue tradisional.",
-    image: "https://images.unsplash.com/photo-1587486937303-a31014873bc6?w=400"
+    image: "https://images.unsplash.com/photo-1498654077810-12c21d4d6dc3?w=400&q=80"
   },
   {
     id: 4,
@@ -33,7 +33,7 @@ const PRODUCTS = [
     price: 55000,
     stock: true,
     description: "1 Kg isi ±10 butir. Kaya nutrisi, cocok untuk keluarga aktif.",
-    image: "https://images.unsplash.com/photo-1510130387422-82bed34b37e9?w=400"
+    image: "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400&q=80"
   }
 ];
 
