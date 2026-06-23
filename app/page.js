@@ -167,14 +167,14 @@ export default function Home() {
           </div>
 
           <h1 className="text-5xl md:text-7xl font-extrabold text-white leading-[1.1] mb-2">
-            Langsung dari<br/>Kandang ke
+            Telur Bersih, Timbangan Jujur,
           </h1>
           <h1 className="text-5xl md:text-7xl font-extrabold text-[#F59E0B] italic mb-6">
-            Dapurmu.
+            Harga Wajar.
           </h1>
 
           <p className="text-lg text-white/90 mb-10 max-w-xl leading-relaxed">
-            Telur ayam segar premium langsung dari kandang Cibadak.
+            Telur ayam segar premium langsung dari kandang kami.
             Kuning telur padat, cangkang bersih, dijamin 100% segar.
             Pesan hari ini, nikmati kesegarannya!
           </p>
